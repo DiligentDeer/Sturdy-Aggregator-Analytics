@@ -376,8 +376,8 @@ def compute_master_data(pps_df, silo_df, strategy_name=const.STRATEGY_NAME):
 
 
 def load_data():
-    save_strategy_data = pd.read_csv('E:\Projects\python_projects\pythonProject3\sturdyDataStrategyV1.csv')
-    save_pps_data = pd.read_csv('E:\Projects\python_projects\pythonProject3\sturdyDataPpsV1.csv')
+    save_strategy_data = pd.read_csv('\sturdyDataStrategyV1.csv')
+    save_pps_data = pd.read_csv('\sturdyDataPpsV1.csv')
     return save_strategy_data, save_pps_data
 
 
@@ -396,5 +396,5 @@ def get_data_for_blocks(historic_block_list, save_strategy_data, save_pps_data):
 
 
 def save_data(save_strategy_data, save_pps_data):
-    save_strategy_data.to_csv('E:\Projects\python_projects\pythonProject3\sturdyDataStrategyV1.csv', index=False)
-    save_pps_data.to_csv('E:\Projects\python_projects\pythonProject3\sturdyDataPpsV1.csv', index=False)
+    save_strategy_data.to_csv('\sturdyDataStrategyV1.csv', index=False)
+    save_pps_data.to_csv('\sturdyDataPpsV1.csv', index=False)
