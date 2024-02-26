@@ -30,3 +30,5 @@ for i in range(len(const.STRATEGY_NAME)):
     charts.instantaneous_data(master_data, const.STRATEGY_NAME[i])
     charts.usage_metrics(master_data, const.STRATEGY_NAME[i])
     charts.misc_charts(master_data, const.STRATEGY_NAME[i])
+
+st.markdown('<p class="center">A Dashboard by <a href="https://twitter.com/LlamaRisk">LlamaRisk</a>! Builder: <a href="https://twitter.com/diligentdeer">DiligentDeer</a>. Credits: <a href="https://twitter.com/0xValJohn">Val</a> & <a href="https://twitter.com/iamllanero">Llanero</a></p>', unsafe_allow_html=True)
