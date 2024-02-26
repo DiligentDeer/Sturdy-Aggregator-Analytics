@@ -390,11 +390,11 @@ def get_data_for_blocks(historic_block_list, save_strategy_data, save_pps_data):
     save_pps_data = save_pps_data.copy()
     save_pps_data = pd.concat([save_pps_data, new_pps_data], ignore_index=True)
 
-    #save_data(save_strategy_data, save_pps_data)
+    save_data(save_strategy_data, save_pps_data)
 
     return save_strategy_data, save_pps_data
 
 
 def save_data(save_strategy_data, save_pps_data):
-    save_strategy_data.to_csv('\sturdyDataStrategyV1.csv', index=False)
-    save_pps_data.to_csv('\sturdyDataPpsV1.csv', index=False)
+    save_strategy_data.to_csv('sturdyDataStrategyV1.csv', index=False)
+    save_pps_data.to_csv('sturdyDataPpsV1.csv', index=False)
