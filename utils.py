@@ -2,10 +2,13 @@ from web3 import Web3, HTTPProvider
 import const
 import pandas as pd
 import streamlit as st
+import os
 
-w3 = Web3(HTTPProvider("https://eth-mainnet.g.alchemy.com/v2/B3A-qCm7fnjB-pxRDlEq1-iJyOIY54-Z"))
+ALCHEMY_KEY = os.environ.get("ALCHEMY_KEY")
+if ALCHEMY_KEY is None:
+    raise ValueError("ALCHEMY_KEY is not set")
 
-
+w3 = Web3(HTTPProvider(f"https://eth-mainnet.g.alchemy.com/v2/{ALCHEMY_KEY}"))
 
 def accumulate_block_with_no_data(latest_block_with_data):
     latest_block_number = w3.eth.block_number
