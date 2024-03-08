@@ -1,5 +1,5 @@
 import streamlit as st
-import plotly.express as px
+# import plotly.express as px
 import plotly.graph_objects as go
 
 
@@ -63,6 +63,7 @@ def usage_metrics(master_data, asset):
     # Display the chart
     st.plotly_chart(fig, use_container_width=True)
 
+
 def misc_charts(master_data, asset):
     # Set up a two-column layout with wider columns
     left_column, right_column = st.columns(2)
@@ -117,3 +118,99 @@ def misc_charts(master_data, asset):
         fig2.update_layout(title='Normalized Oracle', xaxis_title='Block', yaxis_title='Price')
         fig2.update_layout(legend=dict(title='Legend'))  # Add legend title
         st.plotly_chart(fig2, use_container_width=True)  # Adjust width to container width
+
+
+def user_position_table(user_table, asset, column):
+    # Filter out rows where USDC_LTV is not null
+    filtered_table = user_table[user_table[f'{asset}_LTV'].notnull()]
+
+    # Select required columns for the table
+    selected_columns_table = ['user', f'{asset}_borrowBalance', f'{asset}_collateralBalance', f'{asset}_LTV',
+                              f'{asset}_liq_price']
+    filtered_table_table = filtered_table[selected_columns_table]
+
+    # Sort the DataFrame by USDC_LTV
+    filtered_table_table = filtered_table_table.sort_values(by=f'{asset}_LTV', ascending=False)
+
+    # Filter out rows where USDC_LTV is not null for the graph
+    filtered_table_graph = user_table[user_table[f'{asset}_LTV'].notnull()]
+
+    # Select required columns for the graph
+    selected_columns_graph = [f'{asset}_collateralBalance', f'{asset}_liq_price', f'{asset}_share_price']
+    filtered_table_graph = filtered_table_graph[selected_columns_graph]
+
+    filtered_table_table = filtered_table_table.rename(columns={
+        'user': 'User',
+        f'{asset}_borrowBalance': f'Borrow Balance',
+        f'{asset}_collateralBalance': f'Collateral Balance',
+        f'{asset}_LTV': f'LTV',
+        f'{asset}_liq_price': f'Liquidation Price'
+    })
+    # filtered_table_table = filtered_table_table.rename(columns={
+    #     'user': 'User',
+    #     f'{asset}_borrowBalance': f'{asset} Borrow Balance',
+    #     f'{asset}_collateralBalance': f'{asset} Collateral Balance',
+    #     f'{asset}_LTV': f'{asset} LTV',
+    #     f'{asset}_liq_price': f'{asset} Share Price'
+    # })
+
+    # Add a heading for the table
+    column.markdown(f"#### {asset} Silo - User Positions")
+
+    # Display the table without index
+    column.write(filtered_table_table, index=False)
+
+
+def position_risk_chart(filtered_table_graph, asset, column):
+    with column:
+        # Create a new Plotly figure
+        fig = go.Figure()
+
+        # Add scatter trace (scatter plot)
+        fig.add_trace(go.Scatter(
+            x=filtered_table_graph[f'{asset}_liq_price'],
+            y=filtered_table_graph[f'{asset}_collateralBalance'],
+            mode='markers',  # Display markers only
+            name=f'{asset} Collateral Balance',
+            marker=dict(color='blue', size=10)  # Set marker color and size
+        ))
+
+        # Add vertical line at the 'USDC_share_price' value
+        share_price_value = filtered_table_graph[f'{asset}_share_price'].iloc[
+            0]  # Assuming 'USDC_share_price' has only one value
+        fig.add_shape(
+            type="line",
+            x0=share_price_value,
+            y0=0,
+            x1=share_price_value,
+            y1=max(filtered_table_graph[f'{asset}_collateralBalance']),
+            line=dict(
+                color="#6ac69b",
+                width=1,
+                dash="dash",
+            )
+        )
+
+        # Add annotation for the value of the yellow line
+        fig.add_annotation(
+            x=share_price_value,
+            y=max(filtered_table_graph[f'{asset}_collateralBalance']),
+            text=f"{asset} silo share price: {share_price_value:.4f}",
+            showarrow=True,
+            arrowcolor='#6ac69b',
+            arrowhead=0,
+            ax=0,
+            ay=-20
+        )
+
+        # Update layout
+        fig.update_layout(
+            title=f"{asset} Silo - User Collateral Balance vs. {asset} Silo Share Price",
+            xaxis_title=f"{asset} Share Price",
+            yaxis_title=f"{asset} Collateral Balance",
+            xaxis=dict(
+                range=[0.8, 2]  # Set the range of x-axis to no more than 2
+            )
+        )
+
+        st.plotly_chart(fig)

@@ -13,8 +13,13 @@ COLLATERAL_LIST = ['0x7cA00559B978CFde81297849be6151d3ccB408A9',
                    '0xd901DCf4948a29d7D9D7E015AAF61591825AC267',
                    '0x241AdD131B9aaa7527132b752252b99420937ADc',
                    '0x8176b059BD8f63aeB7e20282b12D243b4626E2AE']
+ORACLE_ADDRESS_LIST = ['0xA460cc3dC111E42939512B29390e576f8506D213',
+                       '0xE0DD70C18976Ad7334354234c73ce2a4b749F5F0',
+                       '0x6F7C66f09922C04218B54A04261FcA2310c76aDC',
+                       '0x680F851a3796AB1Aa1204cA8dD2214ef170D1A2D']
 STRATEGY_NAME = ['USDC',
                  'mkUSD',
                  'USDT',
                  'FRAX']
 LOAD_DF_NAME = ['save_strategy_data', 'saved_pps_data']
+QUERY_ID = "3487124"

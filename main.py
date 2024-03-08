@@ -1,5 +1,6 @@
 import streamlit as st
-
+# import plotly.graph_objs as go
+# import pandas as pd
 import utils
 import charts
 import const
@@ -17,8 +18,15 @@ if utils.w3.eth.block_number - const.BLOCK_INTERVAL > latest_block_with_data:
 
 master_data = utils.compute_master_data(utils.process_dataframe(saved_pps_data), saved_strategy_data)
 
-print(master_data)
-master_data.info()
+user_table = utils.compute_user_ltv(saved_strategy_data)
+
+#### Testing
+#user_table = pd.read_csv('user_tableV1.csv')
+# print(user_table)
+# user_table.info()
+# user_table.to_csv('user_tableV1.csv', index=False)
+#####
+
 
 # Set the layout width to a wider size
 st.set_page_config(layout="wide")
@@ -30,5 +38,22 @@ for i in range(len(const.STRATEGY_NAME)):
     charts.instantaneous_data(master_data, const.STRATEGY_NAME[i])
     charts.usage_metrics(master_data, const.STRATEGY_NAME[i])
     charts.misc_charts(master_data, const.STRATEGY_NAME[i])
+
+# Create two columns layout
+left_column, right_column = st.columns(2)
+
+charts.position_risk_chart(user_table, const.STRATEGY_NAME[0], left_column)
+charts.position_risk_chart(user_table, const.STRATEGY_NAME[1], right_column)
+
+charts.position_risk_chart(user_table, const.STRATEGY_NAME[2], left_column)
+charts.position_risk_chart(user_table, const.STRATEGY_NAME[3], right_column)
+
+
+
+charts.user_position_table(user_table, const.STRATEGY_NAME[0], left_column)
+charts.user_position_table(user_table, const.STRATEGY_NAME[1], right_column)
+
+charts.user_position_table(user_table, const.STRATEGY_NAME[2], left_column)
+charts.user_position_table(user_table, const.STRATEGY_NAME[3], right_column)
 
 st.markdown('<p class="center">A Dashboard by <a href="https://twitter.com/LlamaRisk">LlamaRisk</a>! Builder: <a href="https://twitter.com/diligentdeer">DiligentDeer</a>. Credits: <a href="https://twitter.com/0xValJohn">Val</a> & <a href="https://twitter.com/iamllanero">Llanero</a></p>', unsafe_allow_html=True)
