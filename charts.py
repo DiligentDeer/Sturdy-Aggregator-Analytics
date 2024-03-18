@@ -103,7 +103,7 @@ def misc_charts(master_data, asset):
         for i, column in enumerate(y_columns_1):
             fig1.add_trace(
                 go.Scatter(x=master_data['block'], y=master_data[column], name=column, line=dict(color=colors[i])))
-        fig1.update_layout(title='Oracle Low & High', xaxis_title='Block', yaxis_title='Price')
+        fig1.update_layout(title='Oracle Low & High (Oracle Low is fetched from Oracle Contract and Oracle High from Pair Contract', xaxis_title='Block', yaxis_title='Price')
         fig1.update_layout(legend=dict(title='Legend'))  # Add legend title
         st.plotly_chart(fig1, use_container_width=True)  # Adjust width to container width
 

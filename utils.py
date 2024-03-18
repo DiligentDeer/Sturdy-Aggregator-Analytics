@@ -14,6 +14,7 @@ if ALCHEMY_KEY is None:
 DUNE_API_KEY = os.environ.get("DUNE_API_KEY")
 if ALCHEMY_KEY is None:
     raise ValueError("DUNE_API_KEY is not set")
+
 HEADER = {"x-dune-api-key": DUNE_API_KEY}
 
 
@@ -143,7 +144,7 @@ def get_user_position_data():
     return df
 
 
-def get_price_low(oracle_address):
+def get_price_low(oracle_address, block=w3.eth.block_number):
     abi = [{"inputs": [], "name": "getPrices",
             "outputs": [{"internalType": "bool", "name": "_isBadData", "type": "bool"},
                         {"internalType": "uint256", "name": "_priceLow", "type": "uint256"},
@@ -153,7 +154,7 @@ def get_price_low(oracle_address):
 
     contract = w3.eth.contract(address=address, abi=abi)
 
-    prices = contract.functions.getPrices().call()
+    prices = contract.functions.getPrices().call(block_identifier=int(block))
 
     price_low = prices[1] / 1e18
 
@@ -284,30 +285,30 @@ def pair_call_feerate(address, block):
 
 
 # Yearn Calls
-def fetch_pps(address, block):
-    # Convert the address to checksum format
-    yearn_address = Web3.to_checksum_address(address)
-
-    # ABI for the pricePerShare function
-    pricePerShare_abi = [{
-        "stateMutability": "view",
-        "type": "function",
-        "name": "pricePerShare",
-        "inputs": [],
-        "outputs": [{"name": "arg_0", "type": "uint256"}]
-    }]
-
-    # Contract instance for the provided address and ABI
-    yearn_pps = w3.eth.contract(address=yearn_address, abi=pricePerShare_abi)
-
-    # Call the pricePerShare function with the provided block
-    pps = yearn_pps.functions.pricePerShare().call(block_identifier=int(block))
-
-    return pps
+# def fetch_pps(address, block):
+#     # Convert the address to checksum format
+#     yearn_address = Web3.to_checksum_address(address)
+#
+#     # ABI for the pricePerShare function
+#     pricePerShare_abi = [{
+#         "stateMutability": "view",
+#         "type": "function",
+#         "name": "pricePerShare",
+#         "inputs": [],
+#         "outputs": [{"name": "arg_0", "type": "uint256"}]
+#     }]
+#
+#     # Contract instance for the provided address and ABI
+#     yearn_pps = w3.eth.contract(address=yearn_address, abi=pricePerShare_abi)
+#
+#     # Call the pricePerShare function with the provided block
+#     pps = yearn_pps.functions.pricePerShare().call(block_identifier=int(block))
+#
+#     return pps
 
 
 # Data aggregator Calls
-def get_strategy_data(strategy_address, block_number, data_provider_contract=const.DATA_PROVIDER):
+def get_strategy_data(strategy_address, oracle_address, block_number, data_provider_contract=const.DATA_PROVIDER):
     # Convert the data provider address to checksum format
     data_provider_address = Web3.to_checksum_address(data_provider_contract)
 
@@ -375,7 +376,7 @@ def get_strategy_data(strategy_address, block_number, data_provider_contract=con
         'collateralSymbol': strategy_data[2][4],
         'ratePerSec': strategy_data[2][9],
         'fullUtilizationRate': strategy_data[2][10],
-        'lowExchangeRate': strategy_data[2][13] / 1e18,
+        'lowExchangeRate': get_price_low(oracle_address, block_number),
         'highExchangeRate': strategy_data[2][14] / 1e18,
         'maxLTV': strategy_data[2][15] / 1e3,
         'totalAsset': strategy_data[2][17] / 1e18,
@@ -388,12 +389,12 @@ def get_strategy_data(strategy_address, block_number, data_provider_contract=con
     return data
 
 
-def get_strategy_data_for_blocks(strategy_address, block_numbers):
+def get_strategy_data_for_blocks(strategy_address, oracle_address, block_numbers):
     strategy_data_list = []
 
     for block_number in block_numbers:
         try:
-            strategy_data = get_strategy_data(strategy_address, int(block_number))
+            strategy_data = get_strategy_data(strategy_address, oracle_address, int(block_number))
             strategy_data_list.append(strategy_data)
         except Exception as e:
             # print(f"Error fetching data for block {block_number}: {e}")
@@ -402,11 +403,11 @@ def get_strategy_data_for_blocks(strategy_address, block_numbers):
     return pd.DataFrame(strategy_data_list)
 
 
-def merge_strategy_data(historic_block_list, strategy_list=const.STRATEGY_LIST, strategy_names=const.STRATEGY_NAME):
+def merge_strategy_data(historic_block_list, strategy_list=const.STRATEGY_LIST, oracle_list=const.ORACLE_ADDRESS_LIST ,strategy_names=const.STRATEGY_NAME):
     data_list = []
 
     for i in range(len(strategy_list)):
-        strategy_data = get_strategy_data_for_blocks(strategy_list[i], historic_block_list)
+        strategy_data = get_strategy_data_for_blocks(strategy_list[i], oracle_list[i], historic_block_list)
         strategy_data = strategy_data.add_suffix(strategy_names[i])
         strategy_data = strategy_data.rename(columns={f'block{strategy_names[i]}': 'block'})
         data_list.append(strategy_data)

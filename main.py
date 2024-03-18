@@ -21,12 +21,12 @@ master_data = utils.compute_master_data(utils.process_dataframe(saved_pps_data),
 user_table = utils.compute_user_ltv(saved_strategy_data)
 
 #### Testing
-#user_table = pd.read_csv('user_tableV1.csv')
+# user_table = pd.read_csv('user_tableV1.csv')
 # print(user_table)
+# master_data.info()
 # user_table.info()
 # user_table.to_csv('user_tableV1.csv', index=False)
 #####
-
 
 # Set the layout width to a wider size
 st.set_page_config(layout="wide")
