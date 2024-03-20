@@ -30,7 +30,7 @@ def make_api_url(module, action, ID):
 
 # Takes in the query ID and engine size (default - "medium").
 # Returns the execution ID of the instance which is executing the query.
-def execute_query(query_id, engine="medium"):
+def execute_query(query_id, engine="free"):
     url = make_api_url("query", "execute", query_id)
     params = {
         "performance": engine,
@@ -64,7 +64,7 @@ def cancel_query_execution(execution_id):
     return response
 
 
-def execute_query_and_get_addresses(query_id, engine="medium"):
+def execute_query_and_get_addresses(query_id, engine="free"):
     # Execute query
     execution_id = execute_query(query_id, engine)
 
