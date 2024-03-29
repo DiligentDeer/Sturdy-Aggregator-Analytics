@@ -1,13 +1,17 @@
 import streamlit as st
 # import plotly.express as px
 import plotly.graph_objects as go
+import utils
 
 
 def instantaneous_data(master_data, asset):
-    st.write(f"## crvUSD - {asset} Silo")
-    ##################################
     # Find the row with maximum 'block' value
     max_block_row = master_data.loc[master_data['block'].idxmax()]
+
+    st.write(f"## crvUSD - {asset} Silo")
+    st.write(
+        f"*Data represented here are up to {utils.block_number_to_date(max_block_row['block'])} UTC*",
+        markdown=True)
 
     # Create a layout with three columns
     col1, col2, col3 = st.columns(3)

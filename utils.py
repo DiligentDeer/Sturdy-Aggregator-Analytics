@@ -3,6 +3,7 @@ import const
 import pandas as pd
 from requests import get, post
 import time
+import datetime
 import streamlit as st
 import os
 
@@ -89,6 +90,7 @@ def execute_query_and_get_addresses(query_id, engine="free"):
 #######################################################################################################################
 
 w3 = Web3(HTTPProvider(f"https://eth-mainnet.g.alchemy.com/v2/{ALCHEMY_KEY}"))
+# w3 = Web3(HTTPProvider(f"https://mainnet.infura.io/v3/{INFURA_KEY}"))
 
 
 def get_user_position(user_address, data_provider_address=const.DATA_PROVIDER):
@@ -159,6 +161,23 @@ def get_price_low(oracle_address, block=w3.eth.block_number):
     price_low = prices[1] / 1e18
 
     return price_low
+
+
+def get_virtual_price(pool_address, block=w3.eth.block_number):
+    abi = [{"stateMutability": "view",
+            "type": "function",
+            "name": "get_virtual_price",
+            "inputs": [],
+            "outputs": [{"name": "arg_0", "type": "uint256"}]}]
+    address = Web3.to_checksum_address(pool_address)
+
+    contract = w3.eth.contract(address=address, abi=abi)
+
+    prices = contract.functions.get_virtual_price().call(block_identifier=int(block))
+
+    virtual_price = prices / 1e18
+
+    return virtual_price
 
 
 def compute_user_ltv(sturdy_data_strategy_file, oracle_address_list=const.ORACLE_ADDRESS_LIST):
@@ -308,7 +327,7 @@ def pair_call_feerate(address, block):
 
 
 # Data aggregator Calls
-def get_strategy_data(strategy_address, oracle_address, block_number, data_provider_contract=const.DATA_PROVIDER):
+def get_strategy_data(strategy_address, oracle_address, pool_address, block_number, data_provider_contract=const.DATA_PROVIDER):
     # Convert the data provider address to checksum format
     data_provider_address = Web3.to_checksum_address(data_provider_contract)
 
@@ -383,18 +402,19 @@ def get_strategy_data(strategy_address, oracle_address, block_number, data_provi
         'totalCollateral': strategy_data[2][18] / 1e18,
         'totalBorrow': strategy_data[2][19] / 1e18,
         'newCurrentRateInfo': pair_call_interest(strategy_data[1], int(block_number)),
-        'feeToProtocolRate': pair_call_feerate(strategy_data[1], int(block_number))
+        'feeToProtocolRate': pair_call_feerate(strategy_data[1], int(block_number)),
+        'virtualPrice': get_virtual_price(pool_address, block_number)
     }
 
     return data
 
 
-def get_strategy_data_for_blocks(strategy_address, oracle_address, block_numbers):
+def get_strategy_data_for_blocks(strategy_address, oracle_address, pool_address, block_numbers):
     strategy_data_list = []
 
     for block_number in block_numbers:
         try:
-            strategy_data = get_strategy_data(strategy_address, oracle_address, int(block_number))
+            strategy_data = get_strategy_data(strategy_address, oracle_address, pool_address, int(block_number))
             strategy_data_list.append(strategy_data)
         except Exception as e:
             # print(f"Error fetching data for block {block_number}: {e}")
@@ -403,11 +423,12 @@ def get_strategy_data_for_blocks(strategy_address, oracle_address, block_numbers
     return pd.DataFrame(strategy_data_list)
 
 
-def merge_strategy_data(historic_block_list, strategy_list=const.STRATEGY_LIST, oracle_list=const.ORACLE_ADDRESS_LIST ,strategy_names=const.STRATEGY_NAME):
+def merge_strategy_data(historic_block_list, strategy_list=const.STRATEGY_LIST, oracle_list=const.ORACLE_ADDRESS_LIST, pool_address_list=const.CURVE_POOL_LIST,
+                        strategy_names=const.STRATEGY_NAME):
     data_list = []
 
     for i in range(len(strategy_list)):
-        strategy_data = get_strategy_data_for_blocks(strategy_list[i], oracle_list[i], historic_block_list)
+        strategy_data = get_strategy_data_for_blocks(strategy_list[i], oracle_list[i], pool_address_list[i], historic_block_list)
         strategy_data = strategy_data.add_suffix(strategy_names[i])
         strategy_data = strategy_data.rename(columns={f'block{strategy_names[i]}': 'block'})
         data_list.append(strategy_data)
@@ -553,7 +574,7 @@ def compute_master_data(pps_df, silo_df, strategy_name=const.STRATEGY_NAME):
         output_data[f'oracleLow{strategy_name[i]}'] = df[f'lowExchangeRate{strategy_name[i]}']
         output_data[f'oracleHigh{strategy_name[i]}'] = df[f'highExchangeRate{strategy_name[i]}']
         output_data[f'oracleNormalized{strategy_name[i]}'] = df[f'lowExchangeRate{strategy_name[i]}'] * df[
-            f'pps{strategy_name[i]}']
+            f'pps{strategy_name[i]}'] / df[f'virtualPrice{strategy_name[i]}']
         output_data[f'maxLTV{strategy_name[i]}'] = df[f'maxLTV{strategy_name[i]}']
 
     return output_data
@@ -582,3 +603,24 @@ def get_data_for_blocks(historic_block_list, save_strategy_data, save_pps_data):
 def save_data(save_strategy_data, save_pps_data):
     save_strategy_data.to_csv('sturdyDataStrategyV1.csv', index=False)
     save_pps_data.to_csv('sturdyDataPpsV1.csv', index=False)
+
+
+# Function to convert block number to date
+def block_number_to_date(block_number):
+    try:
+        # Get block information
+        block = w3.eth.get_block(int(block_number))  # Convert block number to int
+
+        # Check if block exists
+        if not block:
+            return
+
+        # Convert timestamp to date
+        timestamp = block.timestamp
+        date = datetime.datetime.utcfromtimestamp(timestamp)
+
+        return date  # Return the date object
+
+    except Exception as e:
+        print('Error:', e)
+        return None
