@@ -7,14 +7,18 @@ import datetime
 import streamlit as st
 import os
 
-ALCHEMY_KEY = os.environ.get("ALCHEMY_KEY")
-if ALCHEMY_KEY is None:
+# ALCHEMY_KEY = os.environ.get("ALCHEMY_KEY")
+# if ALCHEMY_KEY is None:
+#     raise ValueError("ALCHEMY_KEY is not set")
+
+INFURA_KEY = os.environ.get("INFURA_KEY")
+if INFURA_KEY is None:
     raise ValueError("ALCHEMY_KEY is not set")
-
-
+    
 DUNE_API_KEY = os.environ.get("DUNE_API_KEY")
 if ALCHEMY_KEY is None:
     raise ValueError("DUNE_API_KEY is not set")
+
 
 HEADER = {"x-dune-api-key": DUNE_API_KEY}
 
@@ -89,8 +93,8 @@ def execute_query_and_get_addresses(query_id, engine="free"):
 
 #######################################################################################################################
 
-w3 = Web3(HTTPProvider(f"https://eth-mainnet.g.alchemy.com/v2/{ALCHEMY_KEY}"))
-# w3 = Web3(HTTPProvider(f"https://mainnet.infura.io/v3/{INFURA_KEY}"))
+# w3 = Web3(HTTPProvider(f"https://eth-mainnet.g.alchemy.com/v2/{ALCHEMY_KEY}"))
+w3 = Web3(HTTPProvider(f"https://mainnet.infura.io/v3/{INFURA_KEY}"))
 
 
 def get_user_position(user_address, data_provider_address=const.DATA_PROVIDER):
