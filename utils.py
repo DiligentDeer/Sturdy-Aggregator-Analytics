@@ -13,10 +13,10 @@ import os
 
 INFURA_KEY = os.environ.get("INFURA_KEY")
 if INFURA_KEY is None:
-    raise ValueError("ALCHEMY_KEY is not set")
+    raise ValueError("INFURA_KEY is not set")
     
 DUNE_API_KEY = os.environ.get("DUNE_API_KEY")
-if ALCHEMY_KEY is None:
+if DUNE_API_KEY is None:
     raise ValueError("DUNE_API_KEY is not set")
 
 
