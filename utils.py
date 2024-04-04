@@ -6,19 +6,35 @@ import time
 import datetime
 import streamlit as st
 import os
+import random
 
-# ALCHEMY_KEY = os.environ.get("ALCHEMY_KEY")
-# if ALCHEMY_KEY is None:
-#     raise ValueError("ALCHEMY_KEY is not set")
+#### INFURA
 
-INFURA_KEY = os.environ.get("INFURA_KEY")
-if INFURA_KEY is None:
-    raise ValueError("INFURA_KEY is not set")
-    
-DUNE_API_KEY = os.environ.get("DUNE_API_KEY")
-if DUNE_API_KEY is None:
-    raise ValueError("DUNE_API_KEY is not set")
+# Get the keys from the environment variable
+INFURA_KEYS = os.environ.get("INFURA_KEYS")
 
+if INFURA_KEYS is None:
+    raise ValueError("INFURA_KEYS is not set")
+
+# Split the keys into a list
+INFURA_KEYS_LIST = INFURA_KEYS.split(',')
+
+# Select a key at random
+INFURA_KEY = random.choice(INFURA_KEYS_LIST)
+
+#### DUNE
+
+# Get the keys from the environment variable
+DUNE_KEYS = os.environ.get("DUNE_KEYS")
+
+if DUNE_KEYS is None:
+    raise ValueError("DUNE_KEYS is not set")
+
+# Split the keys into a list
+DUNE_KEYS_LIST = DUNE_KEYS.split(',')
+
+# Select a key at random
+DUNE_API_KEY = random.choice(DUNE_KEYS_LIST)
 
 HEADER = {"x-dune-api-key": DUNE_API_KEY}
 
