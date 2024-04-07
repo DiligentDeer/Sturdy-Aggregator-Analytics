@@ -347,7 +347,8 @@ def pair_call_feerate(address, block):
 
 
 # Data aggregator Calls
-def get_strategy_data(strategy_address, oracle_address, pool_address, block_number, data_provider_contract=const.DATA_PROVIDER):
+def get_strategy_data(strategy_address, oracle_address, pool_address, block_number,
+                      data_provider_contract=const.DATA_PROVIDER):
     # Convert the data provider address to checksum format
     data_provider_address = Web3.to_checksum_address(data_provider_contract)
 
@@ -443,12 +444,14 @@ def get_strategy_data_for_blocks(strategy_address, oracle_address, pool_address,
     return pd.DataFrame(strategy_data_list)
 
 
-def merge_strategy_data(historic_block_list, strategy_list=const.STRATEGY_LIST, oracle_list=const.ORACLE_ADDRESS_LIST, pool_address_list=const.CURVE_POOL_LIST,
+def merge_strategy_data(historic_block_list, strategy_list=const.STRATEGY_LIST, oracle_list=const.ORACLE_ADDRESS_LIST,
+                        pool_address_list=const.CURVE_POOL_LIST,
                         strategy_names=const.STRATEGY_NAME):
     data_list = []
 
     for i in range(len(strategy_list)):
-        strategy_data = get_strategy_data_for_blocks(strategy_list[i], oracle_list[i], pool_address_list[i], historic_block_list)
+        strategy_data = get_strategy_data_for_blocks(strategy_list[i], oracle_list[i], pool_address_list[i],
+                                                     historic_block_list)
         strategy_data = strategy_data.add_suffix(strategy_names[i])
         strategy_data = strategy_data.rename(columns={f'block{strategy_names[i]}': 'block'})
         data_list.append(strategy_data)
@@ -460,7 +463,11 @@ def merge_strategy_data(historic_block_list, strategy_list=const.STRATEGY_LIST, 
         merged_df = pd.merge(merged_df, df, on='block', how='inner')
         merged_df = merged_df.rename(columns={f'block_x': 'block'})
 
-    return merged_df
+    time_series_df = generate_time_series(historic_block_list)
+
+    merged_df_ts = pd.merge(merged_df, time_series_df, on='block', how='inner')
+
+    return merged_df_ts
 
 
 # Yearn Calls
@@ -576,6 +583,7 @@ def compute_master_data(pps_df, silo_df, strategy_name=const.STRATEGY_NAME):
     output_data = pd.DataFrame()
 
     output_data['block'] = df['block']
+    output_data['time'] = df['time']
 
     for i in range(4):
         output_data[f'reserveSize{strategy_name[i]}'] = df[f'totalAsset{strategy_name[i]}']
@@ -644,3 +652,23 @@ def block_number_to_date(block_number):
     except Exception as e:
         print('Error:', e)
         return None
+
+
+def generate_time_series(historic_block_list):
+    # Initialize lists to store block numbers and corresponding times
+    block_numbers = []
+    times = []
+
+    # Iterate over the historic_block_list
+    for block_number in historic_block_list:
+        # Call block_number_to_date function to get the time for each block number
+        time = block_number_to_date(block_number)
+
+        # Append block number and time to the lists
+        block_numbers.append(block_number)
+        times.append(time)
+
+    # Create a DataFrame from the lists
+    df = pd.DataFrame({'block': block_numbers, 'time': times})
+
+    return df

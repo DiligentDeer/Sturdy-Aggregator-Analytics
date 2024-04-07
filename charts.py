@@ -9,9 +9,8 @@ def instantaneous_data(master_data, asset):
     max_block_row = master_data.loc[master_data['block'].idxmax()]
 
     st.write(f"## crvUSD - {asset} Silo")
-    st.write(
-        f"*Data represented here are up to {utils.block_number_to_date(max_block_row['block'])} UTC*",
-        markdown=True)
+    st.markdown(
+        f"*Data represented here are up to {utils.block_number_to_date(max_block_row['block'])} UTC*")
 
     # Create a layout with three columns
     col1, col2, col3 = st.columns(3)
@@ -40,22 +39,22 @@ def usage_metrics(master_data, asset):
     fig = go.Figure()
 
     # Add traces for 'reserveSizeUSDC' and 'currentBorrowUSDC' as area charts on the left y-axis
-    fig.add_trace(go.Scatter(x=master_data['block'], y=master_data[f'reserveSize{asset}'],
+    fig.add_trace(go.Scatter(x=master_data['time'], y=master_data[f'reserveSize{asset}'],
                              mode='lines+markers', fill='tozeroy', name='Reserve Size',
                              yaxis='y', line=dict(color='#6ac69b'), fillcolor='rgba(106, 198, 155, 0.3)'))
-    fig.add_trace(go.Scatter(x=master_data['block'], y=master_data[f'currentBorrow{asset}'],
+    fig.add_trace(go.Scatter(x=master_data['time'], y=master_data[f'currentBorrow{asset}'],
                              mode='lines+markers', fill='tozeroy', name='Current Borrow',
                              yaxis='y', line=dict(color='#127475'), fillcolor='rgba(18, 116, 117, 0.3)'))
 
     # Add trace for 'utilizationUSDC' * 100% on the right y-axis
-    fig.add_trace(go.Scatter(x=master_data['block'], y=master_data[f'utilization{asset}'] * 100,
+    fig.add_trace(go.Scatter(x=master_data['time'], y=master_data[f'utilization{asset}'] * 100,
                              mode='lines', name='Utilization', yaxis='y2',
                              line=dict(color='#252525')))
 
     # Update layout with titles and axis labels
     fig.update_layout(
         title=f'crvUSD-{asset} Silo Usage Metrics',
-        xaxis_title='Block',
+        xaxis_title='Date',
         yaxis_title='# of crvUSD',
         yaxis2=dict(
             title='Utilization (%)',
@@ -80,9 +79,9 @@ def misc_charts(master_data, asset):
         colors = ['#127475', '#6ac69b']  # Custom colors
         for i, column in enumerate(y_columns_1):
             fig1.add_trace(
-                go.Scatter(x=master_data['block'], y=master_data[column] * 100, name=column,
+                go.Scatter(x=master_data['time'], y=master_data[column] * 100, name=column,
                            line=dict(color=colors[i])))
-        fig1.update_layout(title='Collateral returns vs Borrow interest rate', xaxis_title='Block', yaxis_title='(%)')
+        fig1.update_layout(title='Collateral returns vs Borrow interest rate', xaxis_title='Date', yaxis_title='(%)')
         fig1.update_layout(legend=dict(title='Legend'))  # Add legend title
         st.plotly_chart(fig1, use_container_width=True)  # Adjust width to container width
 
@@ -93,9 +92,9 @@ def misc_charts(master_data, asset):
         fig2 = go.Figure()
         for i, column in enumerate(y_columns_2):
             fig2.add_trace(
-                go.Scatter(x=master_data['block'], y=master_data[column] * 100, name=column,
+                go.Scatter(x=master_data['time'], y=master_data[column] * 100, name=column,
                            line=dict(color=colors[i])))
-        fig2.update_layout(title='Lending returns vs Borrow interest rate', xaxis_title='Block', yaxis_title='(%)')
+        fig2.update_layout(title='Lending returns vs Borrow interest rate', xaxis_title='Date', yaxis_title='(%)')
         fig2.update_layout(legend=dict(title='Legend'))  # Add legend title
         st.plotly_chart(fig2, use_container_width=True)  # Adjust width to container width
 
@@ -106,8 +105,8 @@ def misc_charts(master_data, asset):
         colors = ['#127475', '#6ac69b']  # Custom colors
         for i, column in enumerate(y_columns_1):
             fig1.add_trace(
-                go.Scatter(x=master_data['block'], y=master_data[column], name=column, line=dict(color=colors[i])))
-        fig1.update_layout(title='Oracle Low & High (Oracle Low is fetched from Oracle Contract and Oracle High from Pair Contract)', xaxis_title='Block', yaxis_title='Price')
+                go.Scatter(x=master_data['time'], y=master_data[column], name=column, line=dict(color=colors[i])))
+        fig1.update_layout(title='Oracle Low & High (Oracle Low is fetched from Oracle Contract and Oracle High from Pair Contract)', xaxis_title='Date', yaxis_title='Price')
         fig1.update_layout(legend=dict(title='Legend'))  # Add legend title
         st.plotly_chart(fig1, use_container_width=True)  # Adjust width to container width
 
@@ -118,8 +117,8 @@ def misc_charts(master_data, asset):
         fig2 = go.Figure()
         for i, column in enumerate(y_columns_2):
             fig2.add_trace(
-                go.Scatter(x=master_data['block'], y=master_data[column], name=column, line=dict(color=colors[i])))
-        fig2.update_layout(title='Normalized Oracle', xaxis_title='Block', yaxis_title='Price')
+                go.Scatter(x=master_data['time'], y=master_data[column], name=column, line=dict(color=colors[i])))
+        fig2.update_layout(title='Normalized Oracle', xaxis_title='Date', yaxis_title='Price')
         fig2.update_layout(legend=dict(title='Legend'))  # Add legend title
         st.plotly_chart(fig2, use_container_width=True)  # Adjust width to container width
 
@@ -162,7 +161,7 @@ def user_position_table(user_table, asset, column):
     column.markdown(f"#### {asset} Silo - User Positions")
 
     # Display the table without index
-    column.write(filtered_table_table, index=False)
+    column.write(filtered_table_table)
 
 
 def position_risk_chart(filtered_table_graph, asset, column):
@@ -176,12 +175,21 @@ def position_risk_chart(filtered_table_graph, asset, column):
             y=filtered_table_graph[f'{asset}_collateralBalance'],
             mode='markers',  # Display markers only
             name=f'{asset} Collateral Balance',
-            marker=dict(color='blue', size=10)  # Set marker color and size
+            marker=dict(
+                color='blue',
+                size=filtered_table_graph[f'{asset}_collateralBalance'],
+                sizemode='area',
+                # This line is optional. It makes the marker size scale with the area and not the diameter
+                sizeref=2. * max(filtered_table_graph[f'{asset}_collateralBalance']) / (40. ** 2),
+                # This line is optional. It adjusts the size of the markers
+                sizemin=4
+                # This line is optional. It sets a minimum bound on the size of the markers
+            )
         ))
 
         # Add vertical line at the 'USDC_share_price' value
-        share_price_value = filtered_table_graph[f'{asset}_share_price'].iloc[
-            0]  # Assuming 'USDC_share_price' has only one value
+        # Assuming 'USDC_share_price' has only one value
+        share_price_value = filtered_table_graph[f'{asset}_share_price'].iloc[0]
         fig.add_shape(
             type="line",
             x0=share_price_value,
@@ -195,7 +203,7 @@ def position_risk_chart(filtered_table_graph, asset, column):
             )
         )
 
-        # Add annotation for the value of the yellow line
+        # Add annotation for the value of the vertical line
         fig.add_annotation(
             x=share_price_value,
             y=max(filtered_table_graph[f'{asset}_collateralBalance']),
@@ -218,3 +226,6 @@ def position_risk_chart(filtered_table_graph, asset, column):
         )
 
         st.plotly_chart(fig)
+
+        # Add a note below the graph
+        st.markdown('*[Note for above chart]: The relative size of the scatters are asset independent i.e. the reference is different for each chart.*')
