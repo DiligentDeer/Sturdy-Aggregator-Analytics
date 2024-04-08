@@ -15,9 +15,11 @@ print(f'Latest Block with Data: {latest_block_with_data}')
 historic_block_list = utils.accumulate_block_with_no_data(latest_block_with_data)
 
 print(f'Current Block: {max(historic_block_list)}')
-print(f'User Address from Block: {address_log['block'].max()}')
 
-if int(address_log['block'].max()) + 3600 < int(max(historic_block_list)):
+latest_address_block = address_log['block'].max()
+print(f'User Address from Block: {latest_address_block}')
+
+if int(latest_address_block) + 3600 < int(max(historic_block_list)):
     print('DUNE was used!')
     address_log = utils.update_and_save_address_list(loaded_address_log=address_log,
                                                      triggered_block=int(max(historic_block_list)),
