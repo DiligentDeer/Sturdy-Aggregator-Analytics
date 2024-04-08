@@ -7,6 +7,7 @@ import datetime
 import streamlit as st
 import os
 import random
+import ast
 
 #### INFURA
 
@@ -140,8 +141,55 @@ def get_user_position(user_address, data_provider_address=const.DATA_PROVIDER):
     return data
 
 
-def get_user_position_data():
-    user_address_list = execute_query_and_get_addresses(const.QUERY_ID)
+def update_and_save_address_list(loaded_address_log, triggered_block, file_path='address_log.csv'):
+    """
+    Updates the address log DataFrame with a new row and saves it to a CSV file.
+
+    Parameters:
+    loaded_address_log (DataFrame): The original address log DataFrame.
+    triggered_block (int): The block to be added to the DataFrame.
+    file_path (str): The path of the CSV file to save the updated DataFrame to.
+
+    Returns:
+    DataFrame: The updated address log DataFrame.
+
+    Raises:
+    Exception: If an error occurs while executing the query or saving the DataFrame.
+    """
+    try:
+        address_log_df = loaded_address_log.copy()
+
+        user_address_list = execute_query_and_get_addresses(const.QUERY_ID)
+
+        # Creating a new DataFrame with the new data
+        new_row = pd.DataFrame({'block': [triggered_block], 'user_address_list': [user_address_list]})
+
+        # Concatenating the new row with the existing DataFrame
+        address_log_df = pd.concat([address_log_df, new_row], ignore_index=True)
+
+        address_log_df.to_csv(file_path, index=False)
+
+        return address_log_df
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        raise
+
+
+
+def get_user_position_data(user_address_df):
+
+    # Find the maximum value in the "block" column
+    max_block_value = user_address_df['block'].max()
+
+    # Extract values from other columns corresponding to the maximum 'block' value
+    max_block_row = user_address_df[user_address_df['block'] == max_block_value]
+
+    user_address_list = max_block_row['user_address_list'].iloc[0]
+
+    # Convert the string back to a list
+    user_address_list = ast.literal_eval(user_address_list)
+
+    #  user_address_list = execute_query_and_get_addresses(const.QUERY_ID)
     data_name = ['assetBalance', 'borrowBalance', 'collateralBalance']
     column_name = ['user']
 
@@ -200,8 +248,8 @@ def get_virtual_price(pool_address, block=w3.eth.block_number):
     return virtual_price
 
 
-def compute_user_ltv(sturdy_data_strategy_file, oracle_address_list=const.ORACLE_ADDRESS_LIST):
-    user_position_df = get_user_position_data()
+def compute_user_ltv(sturdy_data_strategy_file, user_address_df, oracle_address_list=const.ORACLE_ADDRESS_LIST):
+    user_position_df = get_user_position_data(user_address_df)
 
     # Find the maximum value in the "block" column
     max_block_value = sturdy_data_strategy_file['block'].max()
@@ -611,7 +659,8 @@ def compute_master_data(pps_df, silo_df, strategy_name=const.STRATEGY_NAME):
 def load_data():
     save_strategy_data = pd.read_csv('sturdyDataStrategyV1.csv')
     save_pps_data = pd.read_csv('sturdyDataPpsV1.csv')
-    return save_strategy_data, save_pps_data
+    address_log = pd.read_csv('address_log.csv')
+    return save_strategy_data, save_pps_data, address_log
 
 
 def get_data_for_blocks(historic_block_list, save_strategy_data, save_pps_data):
