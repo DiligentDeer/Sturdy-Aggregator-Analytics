@@ -10,22 +10,18 @@ saved_strategy_data, saved_pps_data, address_log = utils.load_data()
 
 # Get the latest Block Number to check if enough time has passed to accumulate data for new Blocks
 latest_block_with_data = saved_strategy_data['block'].max()
-print(f'Latest Block with Data: {latest_block_with_data}')
 
 historic_block_list = utils.accumulate_block_with_no_data(latest_block_with_data)
 
-print(f'Current Block: {max(historic_block_list)}')
-
 latest_address_block = address_log['block'].max()
-print(f'User Address from Block: {latest_address_block}')
 
 if int(latest_address_block) + 3600 < int(max(historic_block_list)):
-    print('DUNE was used!')
+    dune_usage = 1
     address_log = utils.update_and_save_address_list(loaded_address_log=address_log,
                                                      triggered_block=int(max(historic_block_list)),
                                                      file_path='address_log.csv')
 else:
-    print('DUNE was not used!')
+    dune_usage = 0
 
 if utils.w3.eth.block_number - const.BLOCK_INTERVAL > latest_block_with_data:
     saved_strategy_data, saved_pps_data = utils.get_data_for_blocks(historic_block_list, saved_strategy_data,
@@ -72,3 +68,10 @@ charts.user_position_table(user_table, const.STRATEGY_NAME[2], left_column)
 charts.user_position_table(user_table, const.STRATEGY_NAME[3], right_column)
 
 st.markdown('<p class="center">A Dashboard by <a href="https://twitter.com/LlamaRisk">LlamaRisk</a>! Builder: <a href="https://twitter.com/diligentdeer">DiligentDeer</a>. Credits: <a href="https://twitter.com/0xValJohn">Val</a> & <a href="https://twitter.com/iamllanero">Llanero</a></p>', unsafe_allow_html=True)
+
+st.markdown(f"""
+Latest Block with Data: {latest_block_with_data}
+Current Block: {max(historic_block_list)}
+User Address from Block: {latest_address_block}
+Dune Usage: {dune_usage}
+""")
