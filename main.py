@@ -10,13 +10,20 @@ saved_strategy_data, saved_pps_data, address_log = utils.load_data()
 
 # Get the latest Block Number to check if enough time has passed to accumulate data for new Blocks
 latest_block_with_data = saved_strategy_data['block'].max()
+print(f'Latest Block with Data: {latest_block_with_data}')
 
 historic_block_list = utils.accumulate_block_with_no_data(latest_block_with_data)
 
+print(f'Current Block: {max(historic_block_list)}')
+print(f'User Address from Block: {address_log['block'].max()}')
+
 if int(address_log['block'].max()) + 3600 < int(max(historic_block_list)):
+    print('DUNE was used!')
     address_log = utils.update_and_save_address_list(loaded_address_log=address_log,
                                                      triggered_block=int(max(historic_block_list)),
                                                      file_path='address_log.csv')
+else:
+    print('DUNE was not used!')
 
 if utils.w3.eth.block_number - const.BLOCK_INTERVAL > latest_block_with_data:
     saved_strategy_data, saved_pps_data = utils.get_data_for_blocks(historic_block_list, saved_strategy_data,
