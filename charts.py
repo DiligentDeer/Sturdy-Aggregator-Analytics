@@ -74,7 +74,7 @@ def misc_charts(master_data, asset):
     # First line chart in the left column
     with left_column:
         # Specify the y-axis columns for the first line chart
-        y_columns_1 = [f'Collateral APY - {asset}', f'Borrow APY - {asset}']  # Predefined columns
+        y_columns_1 = [f'collateralApr_{asset}', f'borrowApy_{asset}']  # Predefined columns
         fig1 = go.Figure()
         colors = ['#127475', '#6ac69b']  # Custom colors
         for i, column in enumerate(y_columns_1):
@@ -88,7 +88,7 @@ def misc_charts(master_data, asset):
     # Second line chart in the right column
     with right_column:
         # Specify the y-axis columns for the second line chart
-        y_columns_2 = [f'Supply APY - {asset}', f'Borrow APY - {asset}']  # Predefined columns
+        y_columns_2 = [f'supplyApy_{asset}', f'borrowApy_{asset}']  # Predefined columns
         fig2 = go.Figure()
         for i, column in enumerate(y_columns_2):
             fig2.add_trace(
@@ -100,13 +100,13 @@ def misc_charts(master_data, asset):
 
     with left_column:
         # Specify the y-axis columns for the first line chart
-        y_columns_1 = [f'Oracle Contract - {asset}', f'Pair Contract Oracle - {asset}']  # Predefined columns
+        y_columns_1 = [f'oracleLow{asset}', f'oracleHigh{asset}']  # Predefined columns
         fig1 = go.Figure()
         colors = ['#127475', '#6ac69b']  # Custom colors
         for i, column in enumerate(y_columns_1):
             fig1.add_trace(
                 go.Scatter(x=master_data['time'], y=master_data[column], name=column, line=dict(color=colors[i])))
-        fig1.update_layout(xaxis_title='Date', yaxis_title='Price')
+        fig1.update_layout(title='Oracle Low & High (Oracle Low is fetched from Oracle Contract and Oracle High from Pair Contract)', xaxis_title='Date', yaxis_title='Price')
         fig1.update_layout(legend=dict(title='Legend'))  # Add legend title
         st.plotly_chart(fig1, use_container_width=True)  # Adjust width to container width
 
